@@ -97,6 +97,7 @@ func main() {
 			os.Exit(1)
 		}
 
+		d.Center = true
 		Dreams = append(Dreams, d)
 		ParseConnections(d.Id, c)
 
@@ -130,7 +131,17 @@ func main() {
 	}
 	fmt.Println("----------------------------------------")
 	fmt.Println(Info, "Now building output...")
-	GenerateOutput(Dreams, Connections)
+
+	WriteIndexOutput()
+	GenerateOutput(Dreams, Connections, OutputConfig{
+		FileName: "output.html",
+		ImagesEnabled: true,
+	})
+
+	GenerateOutput(Dreams, Connections, OutputConfig{
+		FileName: "output-no-images.html",
+		ImagesEnabled: false,
+	})
 	fmt.Println(Ok, "Finished in", strconv.FormatFloat(time.Since(startTime).Seconds(), 'g', -1, 64) + "s")
 }
         

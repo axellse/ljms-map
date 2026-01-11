@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"regexp"
 	"strings"
 )
@@ -25,7 +24,6 @@ func GetWikiText(id string, base string) (string, error) {
 		return "", err
 	}
 
-	os.WriteFile("./test1.txt", ba, 0600)
 	page := string(ba)
 
 	start := strings.Index(page, "<textarea readonly=\"\" accesskey=")
@@ -54,7 +52,7 @@ func GetWikiText(id string, base string) (string, error) {
 var ExtractTitle = regexp.MustCompile(`{{DISPLAYTITLE:(.*?)}}`)
 var ExtractConnections = regexp.MustCompile(`{{[\S\s]*\|connections=(.*?)(}|=)`) //{{Dream[\S\s]*\|connections=(.*?)(}|=)
 var ConnectionSplitter = regexp.MustCompile(`\]\].*?\[\[`)  
-var ExtractImage = regexp.MustCompile(`{{[\S\s]*\|image1=\[?\[?F?i?l?e?:?([^\]\[\{\}]*)`) //{{Dream.*\|image1=\[?\[?F?i?l?e?:?(.*?)\|
+var ExtractImage = regexp.MustCompile(`{{[\S\s]*\|image1=\[?\[?(File:)?([^\]\[\{\}]*)`) //{{Dream.*\|image1=\[?\[?F?i?l?e?:?(.*?)\|
 var ExtractLinkTitle = regexp.MustCompile(`\[?\[?([^|\[\]]*)([^\[\]]*)\]?\]?`)
 
 func ModifyTitle(s string) string {
@@ -83,16 +81,16 @@ func ExtractDream(wikiText string) (Dream, []string, error) {
 
 	dream := Dream{}
 	if ExtractImage.Match([]byte(wikiText)) {
-		image := ExtractImage.FindStringSubmatch(wikiText)[1]
+		image := ExtractImage.FindStringSubmatch(wikiText)[2]
 		if strings.Contains(image, "|") {
 			image = image[:strings.Index(image, "|")]
 		}
 		dream.ImageViewLink = strings.ReplaceAll(*WikiBase, "%s", "File:" + image)
-		dream.Image = GetImageDataUri(strings.ReplaceAll(*WikiBase, "%s", "Special:FilePath/" + image))
+		dream.ImageHqLink = strings.ReplaceAll(*WikiBase, "%s", "Special:FilePath/" + image)
+		dream.Image = GetImageDataUri(dream.ImageHqLink)
 	} else {
 		fmt.Println(Warn, "No image found!")
 	}
-
 
 	if len(title) > 1 {
 		dream.Name = title[1]

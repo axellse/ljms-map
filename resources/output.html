@@ -5,57 +5,169 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ljms wiki map</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@100..900&display=swap" rel="stylesheet">
+
     <script>$$CYTOSCAPE</script>
     <style>
         body {
             margin: 0;
-            background-color: rgb(24, 24, 24);
+
+        }
+        :root {
+            font-family: "Lexend Deca";
         }
         #cy {
             width: 100%;
             height: 100%;
             display: block;
             position: absolute;
+            background-image: url(https://static.wikitide.net/ljmswiki/5/54/WakingWorld3.png);
+            background-size: cover;
+        }
+        .utility {
+            z-index: 50;
+            background-color: rgb(34, 34, 34);
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            color: white;
+        }
+        h1 {
+            margin: 0;
+        }
+        select {
+            background-color: rgb(19,19,17);
+            border: 0;
+            color: white;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+        }
+        a {
+            color: white;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #a7f3fa;
+            transition: color 0.2s;
+        }
+        .lnk {
+            display: flex;
+            align-items: center;
+        }
+        #view-wiki svg {
+            margin-left: 0.25rem;
+        }
+        #close-dream svg {
+            margin-right: 0.25rem;
+        }
+        #close-dream {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            cursor: pointer;
+        }
+        #dream-img {
+            width: 30rem;
+            border-radius: 0.5rem;
+        }
+        p {
+            margin: 0;
+        }
+        #desc {
+            margin-bottom: 0.25rem;
         }
     </style>
 </head>
 <body>
+    <div class="utility">
+        <h1 id="name">dream information utility</h1>
+        <p style="display: none;" id="desc"></p>
+        <div id="dream-picker">
+            <span>click on a dream or pick one: </span>
+            <select onchange="selectChanged()" name="" id="dream-selector">
+                <option value="">Pick a dream</option>
+            </select>
+        </div>
+        <img id="dream-img" style="display: none;" src="" alt="">
+
+        <a class="lnk" target="_blank" style="display: none;" id="view-wiki" href="#">
+            <span>View wiki page</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-move-right-icon lucide-move-right"><path d="M18 8L22 12L18 16"/><path d="M2 12H22"/></svg>
+        </a>
+
+        <svg onclick="closeDream()" style="display: none;" id="close-dream" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </div>
     <div id="cy"></div>
 </body>
 <script>
-    var cy = cytoscape({
+    let elems = $$NODES;
+    let centerId = ""
+    let ds = document.getElementById('dream-selector')
+    let imgLinks = {}
+
+    elems.forEach(element => {
+        if (element["group"] == "nodes") {
+            ds.insertAdjacentHTML("beforeend", "<option value=\"" + element['data']['id'] +"\">" + element['data']['id'] + "</option>")
+            imgLinks[element['data']['id']] = element['data']['imageHq']
+        }
+        if (element['data']['size'] != "100" && element["group"] == "nodes") {
+            centerId = element['data']['id']
+        }
+    });
+
+    let highlightedNodes
+    let cy = cytoscape({
         container: document.getElementById('cy'),
-        elements: $$NODES,
-
-        style: [ // the stylesheet for the graph
+        elements: elems,
+        style: [
             {
-            selector: 'node',
-            style: {
-                'background-image': 'data(image)',
-                'background-fit' : 'cover',
-                'label': 'data(id)',
-                'color': 'white',
-                'shape' : 'round-rectangle',
-                'height' : '100',
-                'width' : '100'
-            }
+                selector: 'node',
+                style: {
+                    'background-image': 'data(image)',
+                    'background-fit' : 'cover',
+                    'label': 'data(id)',
+                    'color': 'black',
+                    'shape' : 'round-rectangle',
+                    'height' : 'data(size)',
+                    'width' : 'data(size)',
+                    'font-family' : 'Lexend Deca, sans-serif',
+                    'font-size' : '21rem'
+                }
             },
-
             {
-            selector: 'edge',
-            style: {
-                'width': 1,
-                'line-color': '#ff0000',
-                'curve-style': 'line'
-            }
+                selector: 'edge',
+                style: {
+                    'width': 1,
+                    'line-color': 'black',
+                    'curve-style': 'line'
+                }
+            },
+            {
+                selector: 'node.highlighted',
+                style: {
+                    'border-width': 6,
+                    'border-color': '#ff0000' //a7f3fa
+                }
+            },
+            {
+                selector: 'edge.highlighted',
+                style: {
+                    'width': 3,
+                    'line-color': '#ff0000'
+                }
             }
         ],
 
         layout: {
             name: 'cose',
             nodeOverlap: 100,
-            nodeRepulsion: 650000
-        }
+            nodeRepulsion: 650000,
+            animate: false
+        },
         /*layout: {
             name: 'breadthfirst',
             directed: false,
@@ -63,6 +175,58 @@
             spacingFactor: 5,
             animate: true
         }*/
+    });
+
+    function selectChanged() {
+        showPath(document.querySelector('#dream-selector').value)
+    }
+
+    function closeDream() {
+        if (!highlightedNodes)  return
+        highlightedNodes.removeClass('highlighted')
+        highlightedNodes = null
+        document.getElementById("name").innerText = "dream information utility"
+        document.getElementById("dream-picker").style.display = ""
+        document.getElementById("close-dream").style.display = "none"
+        document.getElementById("view-wiki").style.display = "none"
+        document.getElementById("dream-img").style.display = "none"
+        document.getElementById("desc").style.display = "none"
+    }
+
+    function showPath(id) {
+        document.getElementById("name").innerText = id
+        document.getElementById("dream-picker").style.display = "none"
+        document.getElementById("close-dream").style.display = ""
+        document.getElementById("view-wiki").style.display = ""
+        document.getElementById("view-wiki").setAttribute('href', "$$BASEURL".replace('%s', id))
+        document.getElementById("dream-img").style.display = ""
+        document.getElementById("dream-img").src = imgLinks[id]
+        document.getElementById("desc").style.display = ""
+
+        if (highlightedNodes) {
+            highlightedNodes.removeClass('highlighted')
+            highlightedNodes = null
+        }
+        const centerNode = centerId ? cy.getElementById(centerId) : null;
+        const targetNode = cy.getElementById(id);
+
+        if (centerNode && centerNode.length && targetNode && targetNode.length) {
+            if (centerNode.same(targetNode)) {
+                centerNode.addClass('highlighted');
+                return;
+            }
+
+            const pathResult = cy.elements().aStar({ root: centerNode, goal: targetNode });
+
+            if (pathResult.found) {
+                highlightedNodes = pathResult.path
+                document.getElementById("desc").innerText = ((pathResult.path.length + 1) /2) - 1 + " dreams away from nexus" 
+                pathResult.path.addClass('highlighted');
+            }
+        }
+    }
+    cy.on('click', 'node', (evt) => {
+        showPath(evt.target.id())
     });
 </script>
 </html>

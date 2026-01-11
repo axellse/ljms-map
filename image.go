@@ -9,27 +9,24 @@ import (
 )
 
 func GetImageDataUri(iurl string) string {
-	fmt.Println(Ok, "Downloading image", iurl)
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
-
-	resp, err := client.Get(iurl)
+	resp1, err := http.Get(iurl)
 	if err != nil {
 		fmt.Println(Error, err)
 		return ""
 	}
 
-	newLoc := resp.Header.Get("Location")
+	newLoc := resp1.Request.URL.String()
 	if strings.Contains(newLoc, "/revision/latest") {
-		newLoc = strings.ReplaceAll(newLoc, "/revision/latest", "/revision/latest/scale-to-width-down/150")
+		newLoc = strings.ReplaceAll(newLoc, "/revision/latest", "/revision/latest/scale-to-width-down/100")
 	}
+	fmt.Println(Ok, "Downloading image", newLoc)
 
-	resp, err = http.Get(newLoc)
+	resp, err := http.Get(newLoc)
 	if err != nil {
 		fmt.Println(Error, err)
+		return ""
+	}
+	if !strings.HasPrefix(resp.Header.Get("content-type"), "image") {
 		return ""
 	}
 
