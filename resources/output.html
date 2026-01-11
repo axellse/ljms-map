@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ljms wiki map</title>
+    <script>$$CYTOSCAPE</script>
+    <style>
+        body {
+            margin: 0;
+            background-color: rgb(24, 24, 24);
+        }
+        #cy {
+            width: 100%;
+            height: 100%;
+            display: block;
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <div id="cy"></div>
+</body>
+<script>
+    var cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: $$NODES,
+
+        style: [ // the stylesheet for the graph
+            {
+            selector: 'node',
+            style: {
+                'background-image': 'data(image)',
+                'background-fit' : 'cover',
+                'label': 'data(id)',
+                'color': 'white',
+                'shape' : 'round-rectangle',
+                'height' : '100',
+                'width' : '100'
+            }
+            },
+
+            {
+            selector: 'edge',
+            style: {
+                'width': 1,
+                'line-color': '#ff0000',
+                'curve-style': 'line'
+            }
+            }
+        ],
+
+        layout: {
+            name: 'cose',
+            nodeOverlap: 100,
+            nodeRepulsion: 650000
+        }
+        /*layout: {
+            name: 'breadthfirst',
+            directed: false,
+            avoidOverlap: true,
+            spacingFactor: 5,
+            animate: true
+        }*/
+    });
+</script>
+</html>
