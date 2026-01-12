@@ -13,7 +13,7 @@
     <style>
         body {
             margin: 0;
-
+            display: flex;
         }
         :root {
             font-family: "Lexend Deca";
@@ -35,6 +35,15 @@
             top: 0.5rem;
             left: 0.5rem;
             color: white;
+            max-width: 85%;
+        }
+        @media (orientation: portrait) {
+            body {
+                justify-content: center;
+            }
+            .utility {
+                left: unset;
+            }
         }
         h1 {
             margin: 0;
@@ -84,7 +93,7 @@
 </head>
 <body>
     <div class="utility">
-        <h1 id="name">dream information utility</h1>
+        <h1 id="name">dream info</h1>
         <p style="display: none;" id="desc"></p>
         <div id="dream-picker">
             <span>click on a dream or pick one: </span>
