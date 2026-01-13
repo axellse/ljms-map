@@ -2,10 +2,11 @@ package main
 
 type Dream struct {
 	Id string //url name
+	ImageCacheType string
 	Name string
 	Image string
 	ImageHqLink string
-	ImageViewLink string
+	ImageHqLocalLink string
 	Center bool
 }
 

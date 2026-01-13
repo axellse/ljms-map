@@ -116,12 +116,14 @@
     let elems = $$NODES;
     let centerId = ""
     let ds = document.getElementById('dream-selector')
-    let imgLinks = {}
+    let wikiLinks = {}
+    let imgLocalLinks = {}
 
     elems.forEach(element => {
         if (element["group"] == "nodes") {
             ds.insertAdjacentHTML("beforeend", "<option value=\"" + element['data']['id'] +"\">" + element['data']['id'] + "</option>")
-            imgLinks[element['data']['id']] = element['data']['imageHq']
+            wikiLinks[element['data']['id']] = element['data']['wikiLink']
+            imgLocalLinks[element['data']['id']] = element['data']['localImageLink']
         }
         if (element['data']['size'] != "100" && element["group"] == "nodes") {
             centerId = element['data']['id']
@@ -202,14 +204,16 @@
         document.getElementById("desc").style.display = "none"
     }
 
+    let curPathDest = ""
     function showPath(id) {
+        curPathDest = id
         document.getElementById("name").innerText = id
         document.getElementById("dream-picker").style.display = "none"
         document.getElementById("close-dream").style.display = ""
         document.getElementById("view-wiki").style.display = ""
-        document.getElementById("view-wiki").setAttribute('href', "$$BASEURL".replace('%s', id))
+        document.getElementById("view-wiki").setAttribute('href', wikiLinks[id])
         document.getElementById("dream-img").style.display = ""
-        document.getElementById("dream-img").src = imgLinks[id]
+        document.getElementById("dream-img").src = imgLocalLinks[id]
         document.getElementById("desc").style.display = ""
 
         if (highlightedNodes) {
@@ -234,8 +238,17 @@
             }
         }
     }
+    
+    function recalcPath() {
+        showPath(curPathDest)
+    }
+    
     cy.on('click', 'node', (evt) => {
         showPath(evt.target.id())
+    });
+    cy.on('cxttap', 'node', (evt) => {
+        centerId = evt.target.id()
+        recalcPath()
     });
 </script>
 </html>

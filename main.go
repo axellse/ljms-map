@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
+	"math/rand/v2"
 	"os"
 	"slices"
 	"strconv"
@@ -55,12 +57,12 @@ func main() {
 	centerPage := flag.String("center", "The_nexus", "default page to start on")
 	flag.Parse()
 	fmt.Println("wiki base url is", *WikiBase + ", starting on", *centerPage)
-	err := os.MkdirAll("./output", 0600)
+	err := os.MkdirAll("./output/images", 0600)
 	if err != nil {
 		fmt.Println(err, err)
 		os.Exit(1)
 	}
-	err = os.MkdirAll("./cache", 0600)
+	err = os.MkdirAll("./cache/images", 0600)
 	if err != nil {
 		fmt.Println(err, err)
 		os.Exit(1)
@@ -85,6 +87,46 @@ func main() {
 				if err != nil {
 					fmt.Println(Error, "Failed reading cache: recrawling anyways.")
 					doCrawl = true
+				}
+			}
+
+			if !doCrawl {
+				newDreams := []Dream{}
+				for i, dr := range Dreams {
+					in, err := os.Open("./cache/images/" + dr.Id + "." + dr.ImageCacheType)
+					if err != nil {
+						fmt.Println(err, err)
+						newDreams = append(newDreams, dr)
+						continue
+					}
+					defer in.Close()
+
+					name := strconv.FormatInt(rand.Int64N(100_000_000), 16) + "." + dr.ImageCacheType
+					out, err := os.Create("./output/images/" + name)
+					if err != nil {
+						fmt.Println(Error, "Failed reading cache: recrawling anyways.")
+						fmt.Println(err, err)
+						doCrawl = true
+						break
+					}
+					defer out.Close()
+
+					_, err = io.Copy(out, in)
+					if err != nil {
+						fmt.Println(Error, "Failed reading cache: recrawling anyways.")
+						fmt.Println(err, err)
+						doCrawl = true
+						break
+					}
+
+					dr.ImageHqLocalLink = "./images/" + name
+					newDreams = append(newDreams, dr)
+
+					fmt.Println(Ok, "Copied file", dr.Id + "." + dr.ImageCacheType, "from cache", "(" + strconv.Itoa(i) + "/" + strconv.Itoa(len(Dreams)) + ")")
+				}
+
+				if !doCrawl {
+					Dreams = newDreams
 				}
 			}
 		}
@@ -127,6 +169,38 @@ func main() {
 			fmt.Println(err, err)
 			os.Exit(1)
 		}
+
+		for i, dr := range Dreams {
+			if dr.ImageHqLocalLink == "" {
+				fmt.Println(Warn, "No file to copy.")
+				continue
+			}
+			in, err := os.Open(dr.ImageHqLocalLink)
+			if err != nil {
+				fmt.Println(Error, err)
+				os.Exit(1)
+			}
+			defer in.Close()
+
+			_extp1 := strings.Split(dr.ImageHqLocalLink, "/")
+			_extp2 := strings.Split(_extp1[len(_extp1) - 1], ".")
+			extension := _extp2[len(_extp2) - 1]
+			out, err := os.Create("./cache/images/" + dr.Id + "." + extension)
+			if err != nil {
+				fmt.Println(Error, err)
+				os.Exit(1)
+			}
+			defer out.Close()
+
+			_, err = io.Copy(out, in)
+			if err != nil {
+				fmt.Println(Error, err)
+				os.Exit(1)
+			}
+
+			fmt.Println(Ok, "Copied file", dr.Id + "." + extension, "to cache", "(" + strconv.Itoa(i) + "/" + strconv.Itoa(len(Dreams)) + ")")
+		}
+		fmt.Println(Ok, "Copied all cache files.")
 		fmt.Println(Ok, "Cache written.")
 	}
 	fmt.Println("----------------------------------------")

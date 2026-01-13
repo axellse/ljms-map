@@ -21,8 +21,9 @@ var IndexHtml []byte
 type NodeData struct {
 	Id string `json:"id"`
 	Image string `json:"image"`
-	ImageHqLink string `json:"imageHq"`
+	LocalImageLink string `json:"localImageLink"`
 	Target string `json:"target,omitempty"`
+	WikiLink string `json:"wikiLink,omitempty"`
 	Source string `json:"source,omitempty"`
 	Size string `json:"size,omitempty"`
 }
@@ -60,8 +61,9 @@ func GenerateOutput(dreams []Dream, connections []Connection, config OutputConfi
 			Data: NodeData{
 				Id: OutputTitle(dream.Id),
 				Image: dream.Image,
-				ImageHqLink: dream.ImageHqLink,
+				LocalImageLink: dream.ImageHqLocalLink,
 				Size: size,
+				WikiLink: strings.Replace(*WikiBase, "%s", dream.Id, 1),
 			},
 			Group: "nodes",
 		})
@@ -88,7 +90,6 @@ func GenerateOutput(dreams []Dream, connections []Connection, config OutputConfi
 	output := string(OutputHtml)
 	output = strings.Replace(output, "$$NODES", string(outputJson), 1)
 	output = strings.Replace(output, "$$CYTOSCAPE", string(CytoscapeJs), 1)
-	output = strings.Replace(output, "$$BASEURL", *WikiBase, 1)
 	
 	err = os.WriteFile("./output/" + config.FileName, []byte(output), 0600)
 	if err != nil {

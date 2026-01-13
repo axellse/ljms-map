@@ -85,8 +85,8 @@ func ExtractDream(wikiText string) (Dream, []string, error) {
 		if strings.Contains(image, "|") {
 			image = image[:strings.Index(image, "|")]
 		}
-		dream.ImageViewLink = strings.ReplaceAll(*WikiBase, "%s", "File:" + image)
 		dream.ImageHqLink = strings.ReplaceAll(*WikiBase, "%s", "Special:FilePath/" + image)
+		dream.ImageHqLocalLink, dream.ImageCacheType = DownloadImage(dream.ImageHqLink)
 		dream.Image = GetImageDataUri(dream.ImageHqLink)
 	} else {
 		fmt.Println(Warn, "No image found!")
